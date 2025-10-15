@@ -1,0 +1,92 @@
+TenWeather Application — Overview
+1. Frontend Architecture
+
+Technologies
+
+React 18 (UI framework) + Vite (build tool)
+
+Tailwind CSS for responsive styling
+
+Framer Motion for smooth animations
+
+Lucide React for dynamic weather icons
+
+Axios for API calls
+
+(Optional) Three.js / React Three Fiber for 3D visualizations
+
+Lottie React for animated loaders
+
+Core Components
+
+App.jsx → Manages global state, geolocation, API calls, and renders backgrounds/UI.
+
+SearchBar.jsx / LocationSuggestions.jsx → Smart input (city or coordinates) with debounced suggestions.
+
+WeatherBackground.jsx / SatelliteMapBackground.jsx → Animated or 3D weather visual layers.
+
+WeatherIcon.jsx → Maps weather codes to icons with motion and glow effects.
+
+Weather Cards (Current, Hourly, Weekly, Details) → Responsive displays of weather data with motion transitions.
+
+LoadingSpinner.jsx → Glassmorphism overlay with animated icons.
+
+Responsive & Theming
+
+Breakpoints: xs–2xl.
+
+Dynamic themes: Clear, Rain, Snow, Fog, Thunder.
+
+Layering with z-index (spinner, banners, UI, background).
+
+2. Backend Architecture
+
+Stack
+
+Node.js + Express REST API
+
+Axios for proxying Open-Meteo APIs
+
+dotenv, CORS for config and security
+
+(Optional) MongoDB for user favorites/history
+
+Endpoints
+
+GET /api/geocode?q= → City search (with smart Indian prioritization)
+
+GET /api/reverse-geocode?lat=&lon= → Converts coordinates to place names
+
+GET /api/weather?lat=&lon= → Returns current, hourly, and daily weather data
+
+GET /api/locations?q= → Top 5 smart suggestions
+
+Features
+
+Error-safe proxy (no API keys).
+
+Haversine formula for nearby location detection.
+
+Centralized error logging & friendly user messages.
+
+3. Data Flow & User Journey
+
+First Visit → Browser geolocation → Reverse geocode → Fetch weather → Animated render.
+
+Manual Search → City/Coords input → Fetch + display weather.
+
+Real-Time Updates → Auto-refresh clock, continuous animations.
+
+Error Handling → Graceful fallback for geolocation or API issues.
+
+4. Key Highlights
+
+Modular & Maintainable component structure.
+
+Immersive Animations via Framer Motion & Canvas.
+
+Responsive & Themed UI adapting to weather.
+
+Smart Geocoding for accurate regional results.
+
+Clear Separation: Frontend = UI & UX, Backend = Data logic.
