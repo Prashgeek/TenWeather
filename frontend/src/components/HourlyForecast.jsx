@@ -1,4 +1,4 @@
-// src/components/HourlyForecast.jsx - HOURLY WEATHER FORECAST
+// src/components/HourlyForecast.jsx - HOURLY WEATHER FORECAST (UPDATED WITH MOBILE RESPONSIVENESS + 320px FIX)
 import React from 'react';
 import { motion } from 'framer-motion';
 import WeatherIcon from './WeatherIcon';
@@ -20,20 +20,20 @@ export default function HourlyForecast({ weather }) {
       initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, ease: "easeOut" }}
-      className="bg-white/10 backdrop-blur-xl rounded-3xl p-6 border border-white/20 shadow-2xl"
+      className="bg-white/10 backdrop-blur-xl rounded-3xl p-4 sm:p-6 border border-white/20 shadow-2xl"
     >
       <motion.h3 
-        className="text-2xl font-bold text-white mb-6 flex items-center gap-3"
+        className="text-xl sm:text-2xl font-bold text-white mb-4 sm:mb-6 flex items-center gap-2 sm:gap-3"
         initial={{ x: -20, opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
         transition={{ delay: 0.2, duration: 0.6 }}
       >
-        <span className="text-3xl">⏰</span>
+        <span className="text-2xl sm:text-3xl">⏰</span>
         24-Hour Forecast
       </motion.h3>
 
-      {/* Horizontal scrollable container */}
-      <div className="overflow-x-auto pb-4">
+      {/* Desktop: Horizontal scrollable container */}
+      <div className="hidden md:block overflow-x-auto pb-4">
         <div className="flex gap-4 min-w-max">
           {hourlyData.map((hour, index) => (
             <motion.div
@@ -42,7 +42,7 @@ export default function HourlyForecast({ weather }) {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               transition={{ delay: 0.05 * index, duration: 0.4 }}
               whileHover={{ scale: 1.05, y: -5 }}
-              className="flex-shrink-0 bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20 min-w-[120px] group hover:bg-white/20 transition-all duration-300"
+              className="flex-shrink-0 bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20 min-w-[120px] group hover:bg-white/20 transition-all duration-300 relative"
             >
               {/* Time */}
               <div className="text-center mb-3">
@@ -117,9 +117,88 @@ export default function HourlyForecast({ weather }) {
         </div>
       </div>
 
-      {/* Scroll indicator */}
+      {/* Mobile: Column Grid Layout (320px optimized) */}
+      <div className="md:hidden grid grid-cols-1 xs:grid-cols-2 gap-2.5 sm:gap-3">
+        {hourlyData.map((hour, index) => (
+          <motion.div
+            key={index}
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.02 * index }}
+            className={`relative bg-white/10 backdrop-blur-md rounded-xl sm:rounded-2xl p-3 border border-white/20 overflow-hidden hover:bg-white/15 transition-all duration-300 ${
+              index === 0 ? 'bg-blue-500/20 border-blue-400/40 xs:col-span-2' : ''
+            }`}
+          >
+            {/* Current Hour Badge */}
+            {index === 0 && (
+              <div className="absolute top-2 right-2 px-1.5 py-0.5 bg-green-500/80 backdrop-blur-sm rounded-full">
+                <span className="text-[10px] font-semibold text-white">NOW</span>
+              </div>
+            )}
+
+            {/* Content Layout - Stack on 320px, Row on larger */}
+            <div className="flex flex-col xs:flex-row items-center xs:items-center justify-between gap-2 xs:gap-3">
+              {/* Left: Icon + Time */}
+              <div className="flex items-center gap-2 xs:gap-3 w-full xs:w-auto">
+                <div className="flex-shrink-0">
+                  <WeatherIcon 
+                    code={hour.weathercode} 
+                    size="small"
+                    animated={index < 6}
+                  />
+                </div>
+                <div className="flex-1 xs:flex-initial min-w-0">
+                  <p className="text-sm xs:text-base font-semibold text-white truncate">
+                    {index === 0 ? 'Now' : hour.time.toLocaleTimeString('en-IN', {
+                      hour: 'numeric',
+                      hour12: true
+                    })}
+                  </p>
+                  <p className="text-[10px] xs:text-xs text-blue-200 truncate">
+                    {hour.time.toLocaleDateString('en-IN', { 
+                      month: 'short',
+                      day: 'numeric'
+                    })}
+                  </p>
+                </div>
+              </div>
+
+              {/* Right: Temperature + Details */}
+              <div className="flex items-center justify-between xs:justify-end gap-3 xs:gap-4 w-full xs:w-auto">
+                {/* Details */}
+                <div className="flex flex-col xs:flex-row gap-1 xs:gap-2 text-[10px] xs:text-xs text-blue-200">
+                  {hour.precipitation > 0 && (
+                    <div className="flex items-center gap-0.5">
+                      <span>💧</span>
+                      <span className="whitespace-nowrap">{hour.precipitation.toFixed(1)}mm</span>
+                    </div>
+                  )}
+                  <div className="flex items-center gap-0.5">
+                    <span>💨</span>
+                    <span className="whitespace-nowrap">{Math.round(hour.windspeed)}km/h</span>
+                  </div>
+                </div>
+
+                {/* Temperature */}
+                <div className="flex-shrink-0">
+                  <p className={`font-bold text-white ${index === 0 ? 'text-2xl xs:text-3xl' : 'text-xl xs:text-2xl'}`}>
+                    {hour.temperature}°
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Gradient Highlight for Current Hour */}
+            {index === 0 && (
+              <div className="absolute inset-0 rounded-xl sm:rounded-2xl bg-gradient-to-br from-blue-400/20 to-transparent pointer-events-none" />
+            )}
+          </motion.div>
+        ))}
+      </div>
+
+      {/* Scroll indicator (Desktop only) */}
       <motion.div 
-        className="flex justify-center mt-4"
+        className="hidden md:flex justify-center mt-4"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 1.2, duration: 0.6 }}

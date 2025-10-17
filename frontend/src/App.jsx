@@ -1,4 +1,4 @@
-// src/App.jsx - COMPLETE WITH ALL FEATURES (Satellite Map + Coordinate Search + Original Design)
+// src/App.jsx - COMPLETE WITH SEARCH HISTORY + KEEPING ORIGINAL CODE INTACT
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
@@ -10,6 +10,7 @@ import CurrentWeather from "./components/CurrentWeather";
 import HourlyForecast from "./components/HourlyForecast";
 import WeeklyForecast from "./components/WeeklyForecast";
 import WeatherDetails from "./components/WeatherDetails";
+import SearchHistory from "./components/SearchHistory";
 
 // Backend API base URL
 const API_BASE_URL = "http://localhost:4000/api";
@@ -25,7 +26,20 @@ export default function App() {
   const [weatherCondition, setWeatherCondition] = useState('clear');
   const [locationPermission, setLocationPermission] = useState(null);
   const [showLocationPrompt, setShowLocationPrompt] = useState(true);
+  const [searchHistory, setSearchHistory] = useState([]);
   const hasRequestedLocation = useRef(false);
+
+  // Load search history from localStorage on mount
+  useEffect(() => {
+    const savedHistory = localStorage.getItem('weatherSearchHistory');
+    if (savedHistory) {
+      try {
+        setSearchHistory(JSON.parse(savedHistory));
+      } catch (e) {
+        console.error('Error loading search history:', e);
+      }
+    }
+  }, []);
 
   // Update time every minute
   useEffect(() => {
@@ -60,6 +74,59 @@ export default function App() {
     if (code >= 71 && code <= 77) return 'snow';
     if (code >= 95) return 'thunder';
     return 'cloudy';
+  }
+
+  // Add location to search history
+  function addToSearchHistory(location, weatherData) {
+    if (!location || !weatherData) return;
+
+    const historyItem = {
+      id: `${location.latitude}-${location.longitude}-${Date.now()}`,
+      name: location.name,
+      admin1: location.admin1,
+      country: location.country,
+      latitude: location.latitude,
+      longitude: location.longitude,
+      temperature: Math.round(weatherData.current_weather?.temperature || 0),
+      weathercode: weatherData.current_weather?.weathercode || 0,
+      timestamp: new Date().toISOString()
+    };
+
+    setSearchHistory(prevHistory => {
+      // Remove duplicate locations (same coordinates)
+      const filtered = prevHistory.filter(
+        item => !(item.latitude === location.latitude && item.longitude === location.longitude)
+      );
+      
+      // Add new item at the beginning and limit to 10 items
+      const newHistory = [historyItem, ...filtered].slice(0, 10);
+      
+      // Save to localStorage
+      localStorage.setItem('weatherSearchHistory', JSON.stringify(newHistory));
+      
+      return newHistory;
+    });
+  }
+
+  // Clear search history
+  function clearSearchHistory() {
+    setSearchHistory([]);
+    localStorage.removeItem('weatherSearchHistory');
+  }
+
+  // Handle selecting location from history
+  function handleHistorySelect(historyItem) {
+    const location = {
+      name: historyItem.name,
+      admin1: historyItem.admin1,
+      country: historyItem.country,
+      latitude: historyItem.latitude,
+      longitude: historyItem.longitude
+    };
+    
+    setPlace(location);
+    setLoading(true);
+    fetchWeatherData(location).finally(() => setLoading(false));
   }
 
   // Request user's current location
@@ -254,6 +321,9 @@ export default function App() {
       });
       console.log("Weather data:", wRes.data);
       setWeather(wRes.data);
+      
+      // Add to search history after successful fetch
+      addToSearchHistory(location, wRes.data);
     } catch (err) {
       console.error("Weather fetch error:", err);
       setErrorMsg("Failed to fetch weather data: " + err.message);
@@ -288,6 +358,15 @@ export default function App() {
         location={place} 
         weatherCondition={weatherCondition}
       />
+
+      {/* Search History - Top Left */}
+      {!showLocationPrompt && (
+        <SearchHistory
+          history={searchHistory}
+          onSelect={handleHistorySelect}
+          onClear={clearSearchHistory}
+        />
+      )}
 
       {/* Main Content */}
       <div className="relative z-10 min-h-screen pb-20 sm:pb-16">
