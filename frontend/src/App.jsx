@@ -12,8 +12,8 @@ import WeeklyForecast from "./components/WeeklyForecast";
 import WeatherDetails from "./components/WeatherDetails";
 import SearchHistory from "./components/SearchHistory";
 
-// Backend API base URL
-const API_BASE_URL = "http://localhost:4000/api";
+// Use Vite env variable; fallback to local dev API if not set.
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:4000/api";
 
 export default function App() {
   const [place, setPlace] = useState(null);
